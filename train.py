@@ -116,11 +116,16 @@ class NormDense(keras.layers.Layer):
     def __init__(self, units=1000, **kwargs):
         super(NormDense, self).__init__(**kwargs)
         self.init = keras.initializers.glorot_normal()
+        self.regular = keras.regularizers.l2(5e-4)
         self.units = units
 
     def build(self, input_shape):
         self.w = self.add_weight(
-            name="norm_dense_w", shape=(input_shape[-1], self.units), initializer=self.init, trainable=True
+            name="norm_dense_w",
+            shape=(input_shape[-1], self.units),
+            initializer=self.init,             
+            regularizer=self.regular,
+            trainable=True,
         )
         super(NormDense, self).build(input_shape)
 
