@@ -25,7 +25,9 @@ def buildin_models(name, dropout=1, emb_shape=512, **kwargs):
     if name == "mobilenet":
         xx = keras.applications.MobileNet(input_shape=(112, 112, 3), include_top=False, weights=None, **kwargs)
     elif name == "mobilenetv2":
-        xx = keras.applications.MobileNetV2(input_shape=(112, 112, 3), include_top=False, weights=None, **kwargs)
+        xx = keras.applications.MobileNetV2(input_shape=(112, 112, 3), include_top=False, weights=None, **kwargs)        
+    elif name == "resnet50":
+        xx = keras.applications.ResNet50(input_shape=(112, 112, 3), include_top=False, weights="imagenet", **kwargs)
     elif name == "resnet50v2":
         xx = keras.applications.ResNet50V2(input_shape=(112, 112, 3), include_top=False, weights="imagenet", **kwargs)
     elif name == "resnet101v2":
@@ -79,15 +81,31 @@ def buildin_models(name, dropout=1, emb_shape=512, **kwargs):
     # nn = keras.layers.Conv2D(emb_shape, xx.output_shape[1], use_bias=False)(nn)
 
     """ GDC """
-    nn = keras.layers.Conv2D(512, 1, use_bias=False)(nn)
+    nn = keras.layers.Conv2D(
+        512,
+        1,
+        use_bias=False,    
+        kernel_regularizer=keras.regularizers.l2(5e-4),
+    )(nn)
     nn = keras.layers.BatchNormalization()(nn)
     # nn = keras.layers.PReLU(shared_axes=[1, 2])(nn)
-    nn = keras.layers.DepthwiseConv2D(nn.shape[1], depth_multiplier=1, use_bias=False)(nn)
+    nn = keras.layers.DepthwiseConv2D(
+        nn.shape[1], 
+        depth_multiplier=1, 
+        use_bias=False,        
+        depthwise_regularizer=keras.regularizers.l2(5e-4),
+    )(nn)
     nn = keras.layers.BatchNormalization()(nn)
     if dropout > 0 and dropout < 1:
         nn = keras.layers.Dropout(dropout)(nn)
     nn = keras.layers.Flatten()(nn)
-    nn = keras.layers.Dense(emb_shape, activation=None, use_bias=False, kernel_initializer="glorot_normal")(nn)
+    nn = keras.layers.Dense(
+        emb_shape,
+        activation=None, 
+        use_bias=False, 
+        kernel_initializer="glorot_normal",
+        kernel_regularizer=keras.regularizers.l2(5e-4),
+    )(nn)
     embedding = keras.layers.BatchNormalization(name="embedding")(nn)
     # norm_emb = layers.Lambda(tf.nn.l2_normalize, name='norm_embedding', arguments={'axis': 1})(embedding)
     basic_model = keras.models.Model(inputs, embedding, name=xx.name)
