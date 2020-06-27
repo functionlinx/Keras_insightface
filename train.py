@@ -185,11 +185,11 @@ class Train:
                 )
                 with keras.utils.custom_object_scope(custom_objects):
                     self.model = keras.models.load_model(model, compile=compile, custom_objects=custom_objects)
-                self.basic_model = keras.models.Model(self.model.inputs[0], self.model.layers[basic_model].output)
+                self.basic_model = keras.models.Model(self.model.inputs[0], self.model.layers[embedding].output)
                 self.model.summary()
         elif isinstance(model, keras.models.Model):
             self.model = model
-            self.basic_model = keras.models.Model(self.model.inputs[0], self.model.layers[basic_model].output)
+            self.basic_model = keras.models.Model(self.model.inputs[0], self.model.layers[embedding].output)
         elif isinstance(basic_model, str):
             if basic_model.endswith(".h5") and os.path.exists(basic_model):
                 custom_objects.update(
